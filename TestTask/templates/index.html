@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load i18n staticfiles %}
+
+{% block extra_head %}
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+    <script type="text/javascript">
+        var TESTMODEL_LIST_JSON_URL = '{% url "testmodel_list_json" %}';
+        // translations for datatables
+
+        var dt_language = {
+            "emptyTable":     "{% trans "No data available in table" %}",
+            "info":           "{% trans "Showing _START_ to _END_ of _TOTAL_ entries" %}",
+            "infoEmpty":      "{% trans "Showing 0 to 0 of 0 entries" %}",
+            "infoFiltered":   "{% trans "(filtered from _MAX_ total entries)" %}",
+            "infoPostFix":    "",
+            "thousands":      ",",
+            "lengthMenu":     "{% trans "Show _MENU_ entries" %}",
+            "loadingRecords": "{% trans "Loading..." %}",
+            "processing":     "{% trans "Processing..." %}",
+            "search":         "{% trans "Search:" %}",
+            "zeroRecords":    "{% trans "No matching records found" %}",
+            "paginate": {
+                "first":      "{% trans "First" %}",
+                "last":       "{% trans "Last" %}",
+                "next":       "{% trans "Next" %}",
+                "previous":   "{% trans "Previous" %}"
+            },
+            "aria": {
+                "sortAscending":  "{% trans ": activate to sort column ascending" %}",
+                "sortDescending": "{% trans ": activate to sort column descending" %}"
+            }
+        }
+    </script>
+{% endblock extra_head %}
+
+{% block content %}
+<div class="container text-center">
+	<a href="{% url 'create' %}"><button type="button" class="m-5">Create New Product</button></a>
+
+	<div>
+		<input type="radio" name="filter_category" value="2"/> Movies<br>
+		<input type="radio" name="filter_category" value="1"/> Books<br>
+		<input type="radio" name="filter_category" value=""/> All<br>
+	</div>
+
+<table id="table_id" class="display">
+	<thead>
+					<th>Product {% trans "Name" %}</th>
+					<th>Product {% trans "Category" %}</th>
+					<th>Product {% trans "Price" %}</th>
+					<th>Update/delete</th>
+			</thead>
+			<tbody>
+			</tbody>
+</table>
+</div>
+<script type="text/javascript">
+	$(document).ready(function() {
+
+		var category_value;
+
+    var dt_table = $('#table_id').DataTable({
+        language: dt_language,  // global variable defined in html
+        order: [[ 0, "desc" ]],
+        lengthMenu: [[5, 10, 100, 200], [5, 10, 100, 200]],
+        columnDefs: [
+            {
+             targets: [0, 1, 2, 3]
+            },
+            {
+                data: 'name',
+                targets: [0]
+            },
+            {
+                data: 'category',
+                targets: [1]
+            },
+						{
+							data: 'price',
+							targets: [2]
+						},
+						{
+							data: 'pk',
+							targets: [3],
+							"render": function ( data, type, row, meta ) {
+    						return '<a href="/update/'+data+'">Update</a> <a href="/delete/'+data+'">Delete</a>';
+  						}
+						}
+        ],
+        searching: true,
+        processing: true,
+        serverSide: true,
+        stateSave: true,
+        ajax: TESTMODEL_LIST_JSON_URL
+    });
+
+
+		$('input[name=filter_category]').on('change', function() {
+			category_value = $(this).val();
+			dt_table.column(1)
+							.search(category_value)
+							.draw();
+		});
+
+	});
+</script>
+{% endblock %}
